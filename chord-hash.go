@@ -11,10 +11,10 @@ func hashID(ringOrder int) uint64 {
 	return 0
 }
 
-func generateRandomID(size int) [20]uint32 {
-	nodeList := [20]uint32{}
-	for i := 0; i < len(nodeList); i++ {
-		nodeList[i] = hasKey(randString())
+func generateRandomID(size int) []uint64 {
+	var nodeList []uint64
+	for i := 0; i < size; i++ {
+		nodeList = append(nodeList, uint64(hasKey(randString())))
 	}
 	fmt.Println(nodeList)
 	return nodeList
