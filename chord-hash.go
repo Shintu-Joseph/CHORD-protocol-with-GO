@@ -11,12 +11,13 @@ func hashID(ringOrder int) uint64 {
 	return 0
 }
 
-func generateRandomID(size int) {
+func generateRandomID(size int) [20]uint32 {
 	nodeList := [20]uint32{}
 	for i := 0; i < len(nodeList); i++ {
 		nodeList[i] = hasKey(randString())
 	}
 	fmt.Println(nodeList)
+	return nodeList
 }
 
 var alphabets = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
