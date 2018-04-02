@@ -6,24 +6,31 @@ import (
 	"sync"
 )
 
-func coordinator(nodeList []uint64, wg *sync.WaitGroup, mainChannel chan string) {
+var channelMap map[string]chan string
 
-	mainChannel <- "hi"
-	defer wg.Done()
+func coordinator(nodeList []uint64, wg *sync.WaitGroup) {
+	//defer wg.Done()
 
 	fmt.Println("Inside coordinator")
-
-	m := make(map[string]chan string)
+	channelMap = make(map[string]chan string)
+	key2 := strconv.FormatUint(nodeList[2], 10)
+	key0 := strconv.FormatUint(nodeList[0], 10)
+	key3 := strconv.FormatUint(nodeList[3], 10)
 
 	for i := 0; i < len(nodeList); i++ {
-
+		key := strconv.FormatUint(nodeList[i], 10)
+		channelMap[key] = make(chan string)
 		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
 
-			key := strconv.FormatUint(nodeList[i], 10)
-			m[key] = make(chan string)
-			m[key] <- "sssss"
+		go func(i int) {
+			//defer wg.Done()
+			for elem := range channelMap[key] {
+				fmt.Println(i, elem)
+				if elem == "send coordin" {
+					channelMap[key2] <- "send value to node 2"
+					closeAllChannels()
+				}
+			}
 
 			////range here///
 
@@ -34,10 +41,8 @@ func coordinator(nodeList []uint64, wg *sync.WaitGroup, mainChannel chan string)
 		}(i)
 	}
 
-	select {
-	default:
-		fmt.Println(m)
-	}
+	channelMap[key0] <- "0"
+	channelMap[key3] <- "send coordin"
 
 	// var messages []string
 	// j := 0
@@ -55,4 +60,10 @@ func coordinator(nodeList []uint64, wg *sync.WaitGroup, mainChannel chan string)
 	// }
 
 	fmt.Println("Last line of coordinator")
+}
+
+func closeAllChannels() {
+	for _, channel := range channelMap {
+		close(channel)
+	}
 }

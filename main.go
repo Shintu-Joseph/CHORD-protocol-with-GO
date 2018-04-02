@@ -18,11 +18,12 @@ func main() {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	mainChannel := make(chan string)
-	go coordinator(generateRandomID(20), &wg, mainChannel)
-	fmt.Println(<-mainChannel)
+
+	go coordinator(generateRandomID(20), &wg)
+
 	//scanner := bufio.NewScanner(os.Stdin)
 	//fmt.Println("Enter the order of the node size on powers of 2:")
 	//scanner.Scan()
 	wg.Wait()
+
 }
