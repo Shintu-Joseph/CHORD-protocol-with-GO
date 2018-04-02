@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"sync"
 )
 
 var channelMap map[string]chan string
 
-func coordinator(nodeList []uint64, wg *sync.WaitGroup) {
-	//defer wg.Done()
+func coordinator(nodeList []uint64) {
+	defer wg.Done()
 
 	fmt.Println("Inside coordinator")
 	channelMap = make(map[string]chan string)
@@ -23,7 +22,7 @@ func coordinator(nodeList []uint64, wg *sync.WaitGroup) {
 		wg.Add(1)
 
 		go func(i int) {
-			//defer wg.Done()
+			defer wg.Done()
 			for elem := range channelMap[key] {
 				fmt.Println(i, elem)
 				if elem == "send coordin" {
@@ -31,33 +30,11 @@ func coordinator(nodeList []uint64, wg *sync.WaitGroup) {
 					closeAllChannels()
 				}
 			}
-
-			////range here///
-
-			// message := <-c1 + strconv.Itoa(int(i))
-			// r2, _ := json.Marshal(message)
-			// c2 <- r2
-			// fmt.Printf("Received message %d", i)
 		}(i)
 	}
 
 	channelMap[key0] <- "0"
 	channelMap[key3] <- "send coordin"
-
-	// var messages []string
-	// j := 0
-	// for i := range c2 {
-	// 	str := i
-	// 	var jresp string
-	// 	json.Unmarshal([]byte(str), &jresp)
-	// 	messages[j] = jresp
-
-	// 	j++
-	// 	if j == N {
-	// 		fmt.Println("All messages received::", messages)
-	// 		wg.Done()
-	// 	}
-	// }
 
 	fmt.Println("Last line of coordinator")
 }
