@@ -1,22 +1,27 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
-	"hash/crc32"
+	"hash/fnv"
 	"math/rand"
 )
+
+type HashKey uint32
 
 func hashID(ringOrder int) uint64 {
 	generateRandomID(40)
 	return 0
 }
 
-func generateRandomID(size int) []uint64 {
-	var nodeList []uint64
+func generateRandomID(size int) []HashKey {
+	var nodeList []HashKey
 	for i := 0; i < size; i++ {
-		nodeList = append(nodeList, uint64(hasKey(randString())))
+		key := genKey(randString())
+		nodeList = append(nodeList, key)
+		fmt.Println(key)
 	}
-	fmt.Println(nodeList)
+
 	return nodeList
 }
 
@@ -31,10 +36,23 @@ func randString() string {
 }
 
 func hasKey(obj string) uint32 {
-	var scratch [64]byte
-	if len(obj) < 64 {
+	h := fnv.New32a()
+	h.Write([]byte(obj))
+	return h.Sum32()
+}
 
-		copy(scratch[:], obj)
-	}
-	return crc32.ChecksumIEEE(scratch[:len(obj)])
+func genKey(key string) HashKey {
+	bKey := hashDigest(key)
+	return hashVal(bKey[0:4])
+}
+
+func hashDigest(key string) [md5.Size]byte {
+	return md5.Sum([]byte(key))
+}
+
+func hashVal(bKey []byte) HashKey {
+	return ((HashKey(bKey[3]) << 24) |
+		(HashKey(bKey[2]) << 16) |
+		(HashKey(bKey[1]) << 8) |
+		(HashKey(bKey[0])))
 }

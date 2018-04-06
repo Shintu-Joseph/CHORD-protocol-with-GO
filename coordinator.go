@@ -2,22 +2,23 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 )
 
-var channelMap map[string]chan string
+var channelMap map[HashKey]chan string
 
-func coordinator(nodeList []uint64) {
+var bucketList map[string](map[string]string)
+
+func coordinator(nodeList []HashKey) {
 	defer wg.Done()
 
 	fmt.Println("Inside coordinator")
-	channelMap = make(map[string]chan string)
-	key2 := strconv.FormatUint(nodeList[2], 10)
-	key0 := strconv.FormatUint(nodeList[0], 10)
-	key3 := strconv.FormatUint(nodeList[3], 10)
+	channelMap = make(map[HashKey]chan string)
+	key2 := nodeList[2]
+	key0 := nodeList[0]
+	key3 := nodeList[3]
 
 	for i := 0; i < len(nodeList); i++ {
-		key := strconv.FormatUint(nodeList[i], 10)
+		key := nodeList[i]
 		channelMap[key] = make(chan string)
 		wg.Add(1)
 
