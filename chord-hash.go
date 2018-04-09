@@ -7,6 +7,7 @@ import (
 	"math/rand"
 )
 
+// HashKey - Holds the hash value of type uint32
 type HashKey uint32
 
 func hashID(ringOrder int) uint64 {
