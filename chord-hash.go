@@ -25,7 +25,7 @@ func generateRandomID(size int) []HashKey {
 	return nodeList
 }
 
-var alphabets = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var alphabets = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
 func randString() string {
 	b := make([]rune, 15)

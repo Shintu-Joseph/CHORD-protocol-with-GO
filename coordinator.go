@@ -2,20 +2,26 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 )
 
 var channelMap map[HashKey]chan string
 
-var bucketList map[string](map[string]string)
+var bucketList map[HashKey](map[HashKey]string)
+
+var fingerTableList map[HashKey]HashKey
+
+func initGlobals() {
+	channelMap = make(map[HashKey]chan string)
+	bucketList = make(map[HashKey](map[HashKey]string))
+	fingerTableList = make(map[HashKey]HashKey)
+}
 
 func coordinator(nodeList []HashKey) {
+
 	defer wg.Done()
 
-	fmt.Println("Inside coordinator")
-	channelMap = make(map[HashKey]chan string)
-	key2 := nodeList[2]
-	key0 := nodeList[0]
-	key3 := nodeList[3]
+	initGlobals()
 
 	for i := 0; i < len(nodeList); i++ {
 		key := nodeList[i]
@@ -24,24 +30,32 @@ func coordinator(nodeList []HashKey) {
 
 		go func(i int) {
 			defer wg.Done()
+			initBucket(key)
 			for elem := range channelMap[key] {
 				fmt.Println(i, elem)
-				if elem == "send coordin" {
-					channelMap[key2] <- "send value to node 2"
-					closeAllChannels()
-				}
 			}
 		}(i)
 	}
 
-	channelMap[key0] <- "0"
-	channelMap[key3] <- "send coordin"
+	for elem := range coordinateChan {
 
-	fmt.Println("Last line of coordinator")
+		if elem == 20 {
+			closeAllChannels()
+		} else {
+			channelMap[nodeList[elem]] <- "send coordin" + strconv.Itoa(elem)
+
+		}
+	}
 }
 
 func closeAllChannels() {
+	ticker.Stop()
 	for _, channel := range channelMap {
 		close(channel)
 	}
+	close(coordinateChan)
+}
+
+func initBucket(key HashKey) {
+	bucketList[key] = make(map[HashKey]string)
 }
