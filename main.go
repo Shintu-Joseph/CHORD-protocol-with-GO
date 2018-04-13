@@ -21,10 +21,10 @@ func main() {
 	coordinateChan = make(chan int)
 
 	fmt.Println("Running Coordinator")
-
+	generateRandomID(20)
 	wg.Add(1)
 
-	go coordinator(generateRandomID(20))
+	go coordinator()
 
 	injectRequests()
 

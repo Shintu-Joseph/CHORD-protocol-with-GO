@@ -2,28 +2,30 @@ package main
 
 import (
 	"crypto/md5"
-	"fmt"
 	"hash/fnv"
 	"math/rand"
+	"sort"
 )
 
 // HashKey - Holds the hash value of type uint32
 type HashKey uint32
 
-func hashID(ringOrder int) uint64 {
-	generateRandomID(40)
-	return 0
-}
+//HashKeyOrder - To sort hashkey
+type HashKeyOrder []HashKey
 
-func generateRandomID(size int) []HashKey {
-	var nodeList []HashKey
+func (h HashKeyOrder) Len() int           { return len(h) }
+func (h HashKeyOrder) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h HashKeyOrder) Less(i, j int) bool { return h[i] < h[j] }
+
+var nodeList []HashKey
+
+func generateRandomID(size int) {
+
 	for i := 0; i < size; i++ {
 		key := genKey(randString())
 		nodeList = append(nodeList, key)
-		fmt.Println(key)
 	}
-
-	return nodeList
+	sort.Sort(HashKeyOrder(nodeList))
 }
 
 var alphabets = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")

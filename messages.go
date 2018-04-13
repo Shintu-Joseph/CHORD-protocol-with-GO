@@ -8,7 +8,7 @@ import (
 var ticker *time.Ticker
 
 func injectRequests() {
-	ticker = time.NewTicker(15000 * time.Millisecond)
+	ticker = time.NewTicker(1500 * time.Millisecond)
 	go func() {
 		for t := range ticker.C {
 			coordinateChan <- generateMessages(t)
