@@ -41,6 +41,7 @@ func nodeWorker(key HashKey, buildRing bool) {
 				res := joinRingMsg{}
 				json.Unmarshal(message, &res)
 				sponsorKey := res.Sponsor
+				fmt.Println(key, dat)
 				joinRing(sponsorKey, recipient)
 
 			}
@@ -75,6 +76,7 @@ func joinRing(sponsor HashKey, recipient HashKey) {
 	successorBytes := <-channelMap[sponsor]
 	fin, _ := strconv.ParseUint(string(successorBytes), 10, 64)
 	successor := HashKey(uint32(fin))
+	fmt.Println(successor)
 	//init ring fingers
 	initRingFingers(recipient, successor)
 	//append to nodeList
@@ -106,21 +108,19 @@ func joinChord(key HashKey) {
 */
 
 func getSuccessor(sponsor HashKey, recipient HashKey, fingerTable []HashKey) HashKey {
-	for _, node := range fingerTable {
-		if node > sponsor && recipient < node {
-			successor := node
-			fmt.Println(successor)
-			return successor
-		}
+	if recipient > sponsor && recipient < fingerTable[0] {
+		return fingerTable[0]
+
+	} else {
+		closestNode := findNearestPreceedingNode(recipient, fingerTable)
+		channelMap[closestNode] <- triggerSuccesorMessage(closestNode, recipient)
+
+		successorBytes := <-channelMap[closestNode]
+		fin, _ := strconv.ParseUint(string(successorBytes), 10, 64)
+		successor := HashKey(uint32(fin))
+
+		return successor
 	}
-	closestNode := findNearestPreceedingNode(recipient, fingerTable)
-	channelMap[closestNode] <- triggerSuccesorMessage(closestNode, recipient)
-
-	successorBytes := <-channelMap[closestNode]
-	fin, _ := strconv.ParseUint(string(successorBytes), 10, 64)
-	successor := HashKey(uint32(fin))
-
-	return successor
 }
 
 func getPredecessor(key HashKey) {
