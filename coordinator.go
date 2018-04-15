@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 //var channelMap map[HashKey]chan string
@@ -31,16 +32,16 @@ func coordinator() {
 		//channelMap[key] = make(chan string)
 		channelMap[key] = make(chan []byte)
 		wg.Add(1)
-		go nodeWorker(key)
+		go nodeWorker(key, true)
 	}
 
-	/*for elem := range coordinateChan {
-		if elem == 20 {
-			closeAllChannels()
-		} else {
-			channelMap[nodeList[elem]] <- strconv.Itoa(elem)
-		}
-	}*/
+	// for elem := range coordinateChan {
+	// 	if elem == 20 {
+	// 		closeAllChannels()
+	// 	} else {
+	// 		channelMap[nodeList[elem]] <- strconv.Itoa(elem)
+	// 	}
+	// }
 
 	//Send message to sponsor
 	for message := range coordinateChan {
@@ -49,6 +50,7 @@ func coordinator() {
 			panic(err)
 		}
 		if dat["Do"] == "join-ring" {
+
 			key := genKey(randString())
 
 			for _, node := range nodeList {
@@ -56,14 +58,18 @@ func coordinator() {
 					key = checkKey(key)
 				}
 			}
+			fmt.Println("here")
+			channelMap[key] = make(chan []byte)
 			wg.Add(1)
-			go nodeWorker(key)
+			go nodeWorker(key, false)
+			fmt.Println("here1")
 			channelMap[key] <- message
 		}
 	}
 }
 
 func closeAllChannels() {
+	fmt.Println("s")
 	ticker.Stop()
 	for _, channel := range channelMap {
 		close(channel)

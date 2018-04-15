@@ -2,9 +2,11 @@ package main
 
 import (
 	"crypto/md5"
+	"fmt"
 	"hash/fnv"
 	"math/rand"
 	"sort"
+	"time"
 )
 
 // HashKey - Holds the hash value of type uint32
@@ -26,6 +28,7 @@ func generateRandomID(size int) {
 		nodeList = append(nodeList, key)
 	}
 	sort.Sort(HashKeyOrder(nodeList))
+	fmt.Println(nodeList)
 }
 
 var alphabets = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
@@ -33,6 +36,7 @@ var alphabets = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 func randString() string {
 	b := make([]rune, 15)
 	for i := range b {
+		rand.Seed(time.Now().UTC().UnixNano())
 		b[i] = alphabets[rand.Intn(52)]
 	}
 	return string(b)

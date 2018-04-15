@@ -54,10 +54,14 @@ type getRemMsgs struct {
 
 func injectRequests() {
 	ticker = time.NewTicker(1500 * time.Millisecond)
+	c := 0
 	go func() {
-		for t := range ticker.C {
+		for range ticker.C {
 			//coordinateChan <- generateMessages(t)
-			coordinateChan <- generateRandomMessage()
+			if c == 0 {
+				coordinateChan <- generateRandomMessage()
+				c++
+			}
 		}
 	}()
 }
@@ -112,4 +116,14 @@ func generateRandomMessage() []byte {
 func randomGenerator(timeSeed time.Time, min int, max int) int {
 	rand.Seed(timeSeed.UTC().UnixNano())
 	return rand.Intn(max-min) + min
+}
+
+func triggerSuccesorMessage(sponsor HashKey, recipient HashKey) []byte {
+	findSuccesorM := &findRingSPMsg{
+		Do:        "find-ring-successor",
+		RespondTO: sponsor,
+		TargetID:  recipient,
+	}
+	fsMessage, _ := json.Marshal(findSuccesorM)
+	return fsMessage
 }

@@ -24,7 +24,9 @@ func main() {
 	coordinateChan = make(chan []byte)
 
 	fmt.Println("Running Coordinator")
+
 	generateRandomID(20)
+
 	wg.Add(1)
 
 	go coordinator()
