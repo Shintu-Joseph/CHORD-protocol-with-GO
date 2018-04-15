@@ -15,6 +15,7 @@ func nodeWorker(key HashKey, buildRing bool) {
 	//bucket := make(map[HashKey]string)
 	fingerTable := make([]HashKey, 32)
 	recipient := key
+	successor := HashKey(0)
 	if buildRing {
 		initialRingSimulator(fingerTable, key)
 	}
@@ -42,7 +43,7 @@ func nodeWorker(key HashKey, buildRing bool) {
 				json.Unmarshal(message, &res)
 				sponsorKey := res.Sponsor
 				fmt.Println(key, dat)
-				joinRing(sponsorKey, recipient)
+				joinRing(sponsorKey, recipient, fingerTable)
 
 			}
 		case "find-ring-successor":
@@ -57,6 +58,12 @@ func nodeWorker(key HashKey, buildRing bool) {
 				channelMap[n] <- []byte(strconv.FormatUint(uint64(successor), 10))
 
 			}
+		case "init-ring-fingers":
+			{
+				fingerTable = initRingFingers(key, successor)
+
+			}
+
 			/*case "leave-ring":
 				return
 			case "stabilize-ring":
@@ -68,7 +75,7 @@ func nodeWorker(key HashKey, buildRing bool) {
 }
 
 //coordinator instructs recipient node to join ring
-func joinRing(sponsor HashKey, recipient HashKey) {
+func joinRing(sponsor HashKey, recipient HashKey, fingerTable []HashKey) {
 	//find node successor
 
 	channelMap[sponsor] <- triggerSuccesorMessage(sponsor, recipient)
@@ -78,16 +85,19 @@ func joinRing(sponsor HashKey, recipient HashKey) {
 	successor := HashKey(uint32(fin))
 	fmt.Println(successor)
 	//init ring fingers
-	initRingFingers(recipient, successor)
+	channelMap[recipient] <- initRingFingMessage()
+
+	fingerTable <-
+
 	//append to nodeList
 	joinChord(recipient)
 
 }
 
 //init ring fingers of joining node
-func initRingFingers(recipient HashKey, successor HashKey) {
-	//copy from successor
-	// fingerTable_recipient := fingerTable
+func initRingFingers(recipient HashKey, successor HashKey) []HashKey {
+
+	trigge
 }
 
 //Add new node to nodeList
