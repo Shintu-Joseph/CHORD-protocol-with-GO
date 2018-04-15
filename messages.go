@@ -259,3 +259,22 @@ func triggerSuccesorMessage(sponsor HashKey, recipient HashKey) []byte {
 	fsMessage, _ := json.Marshal(findSuccesorM)
 	return fsMessage
 }
+
+func initRingFingMessage() []byte {
+	msg3 := &doMsgs{
+		Do: "init-ring-fingers",
+	}
+	initRingMessage, _ := json.Marshal(msg3)
+	return initRingMessage
+}
+
+func getRingFingMessage(key HashKey) []byte {
+
+	msg6 := &doRespondToMsgs{
+		Do:        "get-ring-fingers",
+		RespondTO: key,
+	}
+	getRingFinMessage, _ := json.Marshal(msg6)
+	return getRingFinMessage
+
+}

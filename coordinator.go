@@ -13,16 +13,6 @@ func initGlobals() {
 	channelMap = make(map[HashKey]chan []byte)
 }
 
-func checkKey(key HashKey) HashKey {
-	key = genKey(randString())
-	for _, node := range nodeList {
-		if node == key {
-			checkKey(key)
-		}
-	}
-	return key
-}
-
 func coordinator() {
 	defer wg.Done()
 	initGlobals()
@@ -53,11 +43,6 @@ func coordinator() {
 
 			key := genKey(randString())
 
-			for _, node := range nodeList {
-				if node == key {
-					key = checkKey(key)
-				}
-			}
 			fmt.Println("here")
 			channelMap[key] = make(chan []byte)
 			wg.Add(1)
