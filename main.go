@@ -7,7 +7,9 @@ import (
 
 var wg sync.WaitGroup
 
-var coordinateChan chan int
+//var coordinateChan chan int
+
+var coordinateChan chan []byte
 
 func main() {
 
@@ -18,7 +20,8 @@ func main() {
 	// 	os.Exit(0)
 	// }
 
-	coordinateChan = make(chan int)
+	//coordinateChan = make(chan int)
+	coordinateChan = make(chan []byte)
 
 	fmt.Println("Running Coordinator")
 	generateRandomID(20)
