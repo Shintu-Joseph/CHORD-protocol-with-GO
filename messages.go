@@ -83,72 +83,23 @@ func generateRandomMessage() string {
 	//generate random message
 
 	//1. join-ring msg
-	/*
+	sponsorKey := nodeList[rand.Intn(len(nodeList))]
 
-
-		msg1 := &joinRingMsg{
-			Do:      "join-ring",
-			Sponsor: sponsorKey,
-		}
-		marshalledMessage, _ := json.Marshal(msg1)
-
-		message := string(marshalledMessage)
-	*/
 	// msg1 := &joinRingMsg{
 	// 	Do:      "join-ring",
 	// 	Sponsor: sponsorKey,
 	// }
-	sponsorKey := nodeList[rand.Intn(len(nodeList))]
+
 	msg1 := &leaveRingMsg{
 		Do:        "leave-ring",
 		Recipient: sponsorKey,
 		Mode:      "orderly",
 	}
 
-	// marshalledMessage, _ := json.Marshal(msg1)
-
-	// //bucket list messages
-	// sponsor := nodeList[rand.Intn(len(nodeList))]
-	// key := genKey(randString())
-	/*
-		//9. put msg
-		datMsg := dataMsg2{
-			Key:   key,
-			Value: "val",
-		}
-		msg9 := &putMsg{
-			Do:        "put",
-			RespondTO: sponsor,
-			Data:      datMsg,
-		}
-		marshalledMessage, _ := json.Marshal(msg9)
-		message := string(marshalledMessage)
-	*/
-	//10. get msg
-	// datMsg := dataMsg1{
-	// 	Key: key,
-	// }
-	// msg10 := &getRemMsgs{
-	// 	Do:        "get",
-	// 	RespondTO: sponsor,
-	// 	Data:      datMsg,
-	// }
 	marshalledMessage, _ := json.Marshal(msg1)
+
 	message := string(marshalledMessage)
 
-	/*
-		//11. remove msg
-		datMsg := dataMsg1{
-			Key: key,
-		}
-		msg11 := &getRemMsgs{
-			Do:        "remove",
-			RespondTO: sponsor,
-			Data:      datMsg,
-		}
-		marshalledMessage, _ := json.Marshal(msg11)
-		message := string(marshalledMessage)
-	*/
 	/*
 		choice := rand.Intn(12)
 		switch choice {
@@ -325,20 +276,20 @@ func triggerSuccesorMessage(sponsor HashKey, recipient HashKey) string {
 }
 
 func initRingFingMessage() string {
-	msg3 := &doMsgs{
+	msg := &doMsgs{
 		Do: "init-ring-fingers",
 	}
-	initRingMessage, _ := json.Marshal(msg3)
+	initRingMessage, _ := json.Marshal(msg)
 	return string(initRingMessage)
 }
 
 func getRingFingMessage(key HashKey) string {
 
-	msg6 := &doRespondToMsgs{
+	msg := &doRespondToMsgs{
 		Do:        "get-ring-fingers",
 		RespondTO: key,
 	}
-	getRingFinMessage, _ := json.Marshal(msg6)
+	getRingFinMessage, _ := json.Marshal(msg)
 	return string(getRingFinMessage)
 
 }

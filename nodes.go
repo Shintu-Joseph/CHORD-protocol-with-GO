@@ -292,7 +292,7 @@ func findNearestPreceedingNode(key HashKey, fingerTable []HashKey) HashKey {
 	tempTable := fingerTable
 	sort.Sort(sort.Reverse(HashKeyOrder(tempTable)))
 	for _, node := range tempTable {
-		if node <= key {
+		if node < key {
 			return node
 		}
 	}
