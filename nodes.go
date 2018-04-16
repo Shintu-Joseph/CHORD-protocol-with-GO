@@ -102,9 +102,7 @@ func initRingFingers(recipient HashKey, successor HashKey, fingerTable []HashKey
 
 	//Update the finger table
 
-	copyArray(fingerTable, tempFingTable)
-	fingerTable[0] = successor
-	//append to nodeList
+	copyFingerTable(recipient, successor, fingerTable, tempFingTable)
 
 }
 
