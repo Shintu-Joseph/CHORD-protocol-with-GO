@@ -18,8 +18,9 @@ type joinRingMsg struct {
 }
 
 type leaveRingMsg struct {
-	Do   string
-	Mode string
+	Do        string
+	Mode      string
+	Recipient HashKey
 }
 
 type doRespondToMsgs struct {
@@ -54,6 +55,11 @@ type dataMsg2 struct {
 	Value string
 }
 
+type updateBucketsMsg struct {
+	Do         string
+	BucketData map[HashKey]string
+}
+
 func injectRequests() {
 	ticker = time.NewTicker(1500 * time.Millisecond)
 	c := 0
@@ -78,7 +84,7 @@ func generateRandomMessage() string {
 
 	//1. join-ring msg
 	/*
-		sponsorKey := nodeList[rand.Intn(len(nodeList))]
+
 
 		msg1 := &joinRingMsg{
 			Do:      "join-ring",
@@ -88,10 +94,22 @@ func generateRandomMessage() string {
 
 		message := string(marshalledMessage)
 	*/
+	// msg1 := &joinRingMsg{
+	// 	Do:      "join-ring",
+	// 	Sponsor: sponsorKey,
+	// }
+	sponsorKey := nodeList[rand.Intn(len(nodeList))]
+	msg1 := &leaveRingMsg{
+		Do:        "leave-ring",
+		Recipient: sponsorKey,
+		Mode:      "orderly",
+	}
 
-	//bucket list messages
-	sponsor := nodeList[rand.Intn(len(nodeList))]
-	key := genKey(randString())
+	// marshalledMessage, _ := json.Marshal(msg1)
+
+	// //bucket list messages
+	// sponsor := nodeList[rand.Intn(len(nodeList))]
+	// key := genKey(randString())
 	/*
 		//9. put msg
 		datMsg := dataMsg2{
@@ -107,15 +125,15 @@ func generateRandomMessage() string {
 		message := string(marshalledMessage)
 	*/
 	//10. get msg
-	datMsg := dataMsg1{
-		Key: key,
-	}
-	msg10 := &getRemMsgs{
-		Do:        "get",
-		RespondTO: sponsor,
-		Data:      datMsg,
-	}
-	marshalledMessage, _ := json.Marshal(msg10)
+	// datMsg := dataMsg1{
+	// 	Key: key,
+	// }
+	// msg10 := &getRemMsgs{
+	// 	Do:        "get",
+	// 	RespondTO: sponsor,
+	// 	Data:      datMsg,
+	// }
+	marshalledMessage, _ := json.Marshal(msg1)
 	message := string(marshalledMessage)
 
 	/*
@@ -323,4 +341,25 @@ func getRingFingMessage(key HashKey) string {
 	getRingFinMessage, _ := json.Marshal(msg6)
 	return string(getRingFinMessage)
 
+}
+
+func updateBucketMessage(bucketData map[HashKey]string) string {
+
+	msg := &updateBucketsMsg{
+		Do:         "update-bucket",
+		BucketData: bucketData,
+	}
+	updateBucketMessage, _ := json.Marshal(msg)
+	return string(updateBucketMessage)
+
+}
+
+func triggerPredecessorMessage(sponsor HashKey, recipient HashKey) string {
+	findPredecessorM := &findRingSPMsg{
+		Do:        "find-ring-predecessor",
+		RespondTO: sponsor,
+		TargetID:  recipient,
+	}
+	fsMessage, _ := json.Marshal(findPredecessorM)
+	return string(fsMessage)
 }

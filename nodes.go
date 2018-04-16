@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/rand"
 	"sort"
 	"strconv"
 )
@@ -12,18 +13,15 @@ func nodeWorker(key HashKey, buildRing bool) {
 	defer wg.Done()
 
 	nodeChan := channelMap[key]
-
-	//bucketlist
 	bucket := make(map[HashKey]string)
-
 	fingerTable := make([]HashKey, 32)
 
 	recipient := key
-	successor := HashKey(0)
+
 	if buildRing {
 		initialRingSimulator(fingerTable, key)
 	}
-
+	successor := fingerTable[0]
 	for message := range nodeChan {
 
 		var dat map[string]interface{}
@@ -55,7 +53,6 @@ func nodeWorker(key HashKey, buildRing bool) {
 		case "init-ring-fingers":
 			{
 				initRingFingers(key, successor, fingerTable)
-				fmt.Println(fingerTable, key, successor)
 
 			}
 		case "get-ring-fingers":
@@ -74,9 +71,66 @@ func nodeWorker(key HashKey, buildRing bool) {
 			{
 				removeData(message, key, bucket)
 			}
+		case "leave-ring":
+			{
+
+				res := leaveRingMsg{}
+				json.Unmarshal([]byte(message), &res)
+				if res.Mode == "orderly" {
+					prepareToLeaveRing(successor, key, bucket)
+				}
+				leaveRing(key)
+			}
+		case "update-bucket":
+			{
+				bucket = updateBucket(message, bucket)
+			}
+		case "find-ring-predecessor":
+			{
+
+				res := findRingSPMsg{}
+				json.Unmarshal([]byte(message), &res)
+
+				n := res.RespondTO
+				ID := res.TargetID
+				predecessorToRespond := getPredecessor(n, ID, fingerTable)
+				channelMap[n] <- strconv.FormatUint(uint64(predecessorToRespond), 10)
+			}
+
 		}
 
 	}
+}
+
+func updateBucket(message string, bucket map[HashKey]string) map[HashKey]string {
+
+	res := updateBucketsMsg{}
+	json.Unmarshal([]byte(message), &res)
+	for k, v := range res.BucketData {
+		bucket[k] = v
+	}
+	return bucket
+}
+
+func leaveRing(key HashKey) {
+	wg.Done()
+	close(channelMap[key])
+	delete(channelMap, key)
+	removeNodeFromList(key)
+
+}
+
+func prepareToLeaveRing(successor HashKey, node HashKey, bucket map[HashKey]string) {
+	channelMap[successor] <- updateBucketMessage(bucket)
+	sponsor := nodeList[rand.Intn(len(nodeList))]
+
+	channelMap[sponsor] <- triggerPredecessorMessage(sponsor, node)
+	predecessorBytes := <-channelMap[sponsor]
+	fin, _ := strconv.ParseUint(predecessorBytes, 10, 64)
+	predecessor := HashKey(uint32(fin))
+
+	fmt.Println(predecessor, sponsor, node)
+	fmt.Println(nodeList)
 }
 
 //coordinator instructs recipient node to join ring
@@ -144,8 +198,23 @@ func getSuccessor(sponsor HashKey, recipient HashKey, fingerTable []HashKey) Has
 
 }
 
-func getPredecessor(key HashKey) {
+func getPredecessor(sponsor HashKey, recipient HashKey, fingerTable []HashKey) HashKey {
+	if recipient > sponsor && recipient <= fingerTable[0] {
+		return sponsor
 
+	} else {
+		closestNode := findNearestPreceedingNode(recipient, fingerTable)
+		if closestNode == recipient {
+			return closestNode
+		}
+		channelMap[closestNode] <- triggerPredecessorMessage(closestNode, recipient)
+
+		predecessorBytes := <-channelMap[closestNode]
+		fin, _ := strconv.ParseUint(predecessorBytes, 10, 64)
+		predecessor := HashKey(uint32(fin))
+
+		return predecessor
+	}
 }
 
 func putData(message string, key HashKey, bucket map[HashKey]string) {

@@ -21,6 +21,9 @@ func coordinator() {
 	for i := 0; i < len(nodeList); i++ {
 		key := nodeList[i]
 		channelMap[key] = make(chan string, 5)
+	}
+	for i := 0; i < len(nodeList); i++ {
+		key := nodeList[i]
 		wg.Add(1)
 		go nodeWorker(key, true)
 	}
@@ -34,12 +37,9 @@ func coordinator() {
 		if dat["Do"] == "join-ring" {
 
 			key := genKey(randString())
-
-			fmt.Println("here")
 			channelMap[key] = make(chan string, 5)
 			wg.Add(1)
 			go nodeWorker(key, false)
-			fmt.Println("here1")
 			channelMap[key] <- message
 			channelMap[key] <- initRingFingMessage()
 		}

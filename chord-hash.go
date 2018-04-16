@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/md5"
-	"fmt"
 	"hash/fnv"
 	"math/rand"
 	"sort"
@@ -28,7 +27,6 @@ func generateRandomID(size int) {
 		nodeList = append(nodeList, key)
 	}
 	sort.Sort(HashKeyOrder(nodeList))
-	fmt.Println(nodeList)
 }
 
 var alphabets = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
