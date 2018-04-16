@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand"
 	"sort"
 	"strconv"
 )
@@ -17,7 +16,7 @@ func nodeWorker(key HashKey, buildRing bool) {
 	fingerTable := make([]HashKey, 32)
 
 	recipient := key
-
+	predecessor := HashKey(0)
 	if buildRing {
 		initialRingSimulator(fingerTable, key)
 	}
@@ -77,13 +76,9 @@ func nodeWorker(key HashKey, buildRing bool) {
 				res := leaveRingMsg{}
 				json.Unmarshal([]byte(message), &res)
 				if res.Mode == "orderly" {
-					prepareToLeaveRing(successor, key, bucket)
+					prepareToLeaveRing(successor, predecessor, key, bucket)
 				}
 				leaveRing(key)
-			}
-		case "update-bucket":
-			{
-				bucket = updateBucket(message, bucket)
 			}
 		case "find-ring-predecessor":
 			{
@@ -96,15 +91,36 @@ func nodeWorker(key HashKey, buildRing bool) {
 				predecessorToRespond := getPredecessor(n, ID, fingerTable)
 				channelMap[n] <- strconv.FormatUint(uint64(predecessorToRespond), 10)
 			}
+		case "update-bucket-and-predecessor":
+			{
+				bucket = updateBucket(message, bucket)
+				predecessor = updatePredecessor(message)
+			}
+		case "update-successor":
+			{
+				successor = updateSuccessor(message)
+			}
 
 		}
 
 	}
 }
 
+func updateSuccessor(message string) HashKey {
+	res := updateSuccessorMsg{}
+	json.Unmarshal([]byte(message), &res)
+	return res.Successor
+}
+
+func updatePredecessor(message string) HashKey {
+	res := updateBucketsAndPredecessorMsg{}
+	json.Unmarshal([]byte(message), &res)
+	return res.Predecessor
+}
+
 func updateBucket(message string, bucket map[HashKey]string) map[HashKey]string {
 
-	res := updateBucketsMsg{}
+	res := updateBucketsAndPredecessorMsg{}
 	json.Unmarshal([]byte(message), &res)
 	for k, v := range res.BucketData {
 		bucket[k] = v
@@ -120,15 +136,20 @@ func leaveRing(key HashKey) {
 
 }
 
-func prepareToLeaveRing(successor HashKey, node HashKey, bucket map[HashKey]string) {
-	channelMap[successor] <- updateBucketMessage(bucket)
-	sponsor := nodeList[rand.Intn(len(nodeList))]
+func prepareToLeaveRing(successor HashKey, predecessor HashKey, node HashKey, bucket map[HashKey]string) {
+
+	sponsor := HashKey(4187914122)
 
 	channelMap[sponsor] <- triggerPredecessorMessage(sponsor, node)
-	predecessorBytes := <-channelMap[sponsor]
-	fin, _ := strconv.ParseUint(predecessorBytes, 10, 64)
-	predecessor := HashKey(uint32(fin))
 
+	if predecessor == 0 {
+		predecessorBytes := <-channelMap[sponsor]
+		fin, _ := strconv.ParseUint(predecessorBytes, 10, 64)
+		predecessor = HashKey(uint32(fin))
+	}
+
+	channelMap[successor] <- updateBucketAndPredecessorMessage(bucket, predecessor)
+	channelMap[predecessor] <- updateSuccessorMessage(successor)
 	fmt.Println(predecessor, sponsor, node)
 	fmt.Println(nodeList)
 }

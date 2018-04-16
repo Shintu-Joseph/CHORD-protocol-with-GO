@@ -44,8 +44,8 @@ func coordinator() {
 			channelMap[key] <- initRingFingMessage()
 		}
 		if dat["Do"] == "leave-ring" {
-			sponsor := nodeList[rand.Intn(len(nodeList))]
-			channelMap[sponsor] <- message
+			//sponsor := nodeList[rand.Intn(len(nodeList))]
+			channelMap[4022502477] <- message
 		}
 		if dat["Do"] == "stabilize-ring" {
 			sponsor := nodeList[rand.Intn(len(nodeList))]

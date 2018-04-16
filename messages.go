@@ -55,9 +55,20 @@ type dataMsg2 struct {
 	Value string
 }
 
-type updateBucketsMsg struct {
-	Do         string
-	BucketData map[HashKey]string
+type updateBucketsAndPredecessorMsg struct {
+	Do          string
+	BucketData  map[HashKey]string
+	Predecessor HashKey
+}
+
+type updatePredecessorMsg struct {
+	Do          string
+	Predecessor HashKey
+}
+
+type updateSuccessorMsg struct {
+	Do        string
+	Successor HashKey
 }
 
 func injectRequests() {
@@ -83,7 +94,7 @@ func generateRandomMessage() string {
 	//generate random message
 
 	//1. join-ring msg
-	sponsorKey := nodeList[rand.Intn(len(nodeList))]
+	//sponsorKey := nodeList[rand.Intn(len(nodeList))]
 
 	// msg1 := &joinRingMsg{
 	// 	Do:      "join-ring",
@@ -92,7 +103,7 @@ func generateRandomMessage() string {
 
 	msg1 := &leaveRingMsg{
 		Do:        "leave-ring",
-		Recipient: sponsorKey,
+		Recipient: 4022502477,
 		Mode:      "orderly",
 	}
 
@@ -294,14 +305,15 @@ func getRingFingMessage(key HashKey) string {
 
 }
 
-func updateBucketMessage(bucketData map[HashKey]string) string {
+func updateBucketAndPredecessorMessage(bucketData map[HashKey]string, predecessor HashKey) string {
 
-	msg := &updateBucketsMsg{
-		Do:         "update-bucket",
-		BucketData: bucketData,
+	msg := &updateBucketsAndPredecessorMsg{
+		Do:          "update-bucket-and-predecessor",
+		BucketData:  bucketData,
+		Predecessor: predecessor,
 	}
-	updateBucketMessage, _ := json.Marshal(msg)
-	return string(updateBucketMessage)
+	updateBucketsAndPredecessorMsg, _ := json.Marshal(msg)
+	return string(updateBucketsAndPredecessorMsg)
 
 }
 
@@ -313,4 +325,26 @@ func triggerPredecessorMessage(sponsor HashKey, recipient HashKey) string {
 	}
 	fsMessage, _ := json.Marshal(findPredecessorM)
 	return string(fsMessage)
+}
+
+func updateSuccessorMessage(successor HashKey) string {
+
+	msg := &updateSuccessorMsg{
+		Do:        "update-successor",
+		Successor: successor,
+	}
+	updateSuccessorMsg, _ := json.Marshal(msg)
+	return string(updateSuccessorMsg)
+
+}
+
+func updatePredecessorMessage(predecessor HashKey) string {
+
+	msg := &updatePredecessorMsg{
+		Do:          "update-predecessor",
+		Predecessor: predecessor,
+	}
+	updatePredecessorMsg, _ := json.Marshal(msg)
+	return string(updatePredecessorMsg)
+
 }

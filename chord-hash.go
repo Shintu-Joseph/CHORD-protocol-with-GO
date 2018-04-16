@@ -22,10 +22,11 @@ var nodeList []HashKey
 
 func generateRandomID(size int) {
 
-	for i := 0; i < size; i++ {
-		key := genKey(randString())
-		nodeList = append(nodeList, key)
-	}
+	// for i := 0; i < size; i++ {
+	// 	key := genKey(randString())
+	// 	nodeList = append(nodeList, key)
+	// }
+	nodeList = []HashKey{80557796, 265783733, 375758140, 423253681, 456280120, 684701463, 932487667, 1212772035, 1507849762, 1707850546, 1781856750, 2128408664, 2245435702, 3415462931, 3473798477, 3688027763, 4022502477, 4187914122, 4190572191, 4197268715}
 	sort.Sort(HashKeyOrder(nodeList))
 }
 
