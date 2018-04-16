@@ -20,19 +20,10 @@ func nodeWorker(key HashKey, buildRing bool) {
 		initialRingSimulator(fingerTable, key)
 	}
 
-	/*for elem := range nodeChan {
-		bucket[key] = elem
-		if elem == "15" {
-			fmt.Println(elem, fingerTable)
-			channelMap[HashKey(916619801)] <- "in 4"
-		}
-	}
-	*/
-
 	for message := range nodeChan {
 
 		var dat map[string]interface{}
-		if err := json.Unmarshal(message, &dat); err != nil {
+		if err := json.Unmarshal([]byte(message), &dat); err != nil {
 			panic(err)
 		}
 		choice := dat["Do"]
@@ -40,64 +31,81 @@ func nodeWorker(key HashKey, buildRing bool) {
 		case "join-ring":
 			{
 				res := joinRingMsg{}
-				json.Unmarshal(message, &res)
+				json.Unmarshal([]byte(message), &res)
 				sponsorKey := res.Sponsor
-				fmt.Println(key, dat)
-				joinRing(sponsorKey, recipient, fingerTable)
+				successor = joinRing(sponsorKey, recipient, fingerTable)
 
 			}
 		case "find-ring-successor":
 			{
 
 				res := findRingSPMsg{}
-				json.Unmarshal(message, &res)
+				json.Unmarshal([]byte(message), &res)
 
 				n := res.RespondTO
 				ID := res.TargetID
-				successor := getSuccessor(n, ID, fingerTable)
-				channelMap[n] <- []byte(strconv.FormatUint(uint64(successor), 10))
+				successorToRespond := getSuccessor(n, ID, fingerTable)
+				channelMap[n] <- strconv.FormatUint(uint64(successorToRespond), 10)
 
 			}
 		case "init-ring-fingers":
 			{
-				fingerTable = initRingFingers(key, successor)
+				initRingFingers(key, successor, fingerTable)
+				fmt.Println(fingerTable, key, successor)
 
 			}
+		case "get-ring-fingers":
+			{
+				getRingFingers(message, fingerTable)
+			}
 
-			/*case "leave-ring":
-				return
-			case "stabilize-ring":
-				return
-			*/
 		}
 
 	}
 }
 
 //coordinator instructs recipient node to join ring
-func joinRing(sponsor HashKey, recipient HashKey, fingerTable []HashKey) {
+func joinRing(sponsor HashKey, recipient HashKey, fingerTable []HashKey) HashKey {
+
 	//find node successor
 
 	channelMap[sponsor] <- triggerSuccesorMessage(sponsor, recipient)
 
 	successorBytes := <-channelMap[sponsor]
-	fin, _ := strconv.ParseUint(string(successorBytes), 10, 64)
+	fin, _ := strconv.ParseUint(successorBytes, 10, 64)
 	successor := HashKey(uint32(fin))
-	fmt.Println(successor)
+
 	//init ring fingers
-	channelMap[recipient] <- initRingFingMessage()
 
-	fingerTable <-
-
-	//append to nodeList
 	joinChord(recipient)
+
+	return successor
 
 }
 
-//init ring fingers of joining node
-func initRingFingers(recipient HashKey, successor HashKey) []HashKey {
+func getRingFingers(message string, fingerTable []HashKey) {
+	res := doRespondToMsgs{}
+	json.Unmarshal([]byte(message), &res)
 
-	trigge
+	recipient := res.RespondTO
+	marshalledFing, _ := json.Marshal(fingerTable)
+	channelMap[recipient] <- string(marshalledFing)
+}
+
+//init ring fingers of joining node
+func initRingFingers(recipient HashKey, successor HashKey, fingerTable []HashKey) {
+
+	channelMap[successor] <- getRingFingMessage(recipient)
+
+	tempFingTable := []HashKey{}
+	json.Unmarshal([]byte(<-channelMap[recipient]), &tempFingTable)
+
+	//Update the finger table
+
+	copyArray(fingerTable, tempFingTable)
+	fingerTable[0] = successor
+	//append to nodeList
+
 }
 
 //Add new node to nodeList
@@ -105,17 +113,6 @@ func joinChord(key HashKey) {
 	nodeList = append(nodeList, key)
 	sort.Sort(HashKeyOrder(nodeList))
 }
-
-/*func checkKey(key HashKey) HashKey {
-	key = genKey(randString())
-	for _, node := range nodeList {
-		if node == key {
-			checkKey(key)
-		}
-	}
-	return key
-}
-*/
 
 func getSuccessor(sponsor HashKey, recipient HashKey, fingerTable []HashKey) HashKey {
 	if recipient > sponsor && recipient < fingerTable[0] {
@@ -126,7 +123,7 @@ func getSuccessor(sponsor HashKey, recipient HashKey, fingerTable []HashKey) Has
 		channelMap[closestNode] <- triggerSuccesorMessage(closestNode, recipient)
 
 		successorBytes := <-channelMap[closestNode]
-		fin, _ := strconv.ParseUint(string(successorBytes), 10, 64)
+		fin, _ := strconv.ParseUint(successorBytes, 10, 64)
 		successor := HashKey(uint32(fin))
 
 		return successor

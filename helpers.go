@@ -1,9 +1,7 @@
 package main
 
-func convertArrayToByteArray(array []HashKey) []byte {
-	byteArray := make([][]byte, len(array))
-	for i, v := range array {
-		byteArray[i] = []byte(v)
+func copyArray(fingerTable []HashKey, successorFingerTable []HashKey) {
+	for i, v := range successorFingerTable {
+		fingerTable[i] = v
 	}
-	return byteArray
 }

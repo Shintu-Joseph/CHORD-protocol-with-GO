@@ -9,7 +9,7 @@ var wg sync.WaitGroup
 
 //var coordinateChan chan int
 
-var coordinateChan chan []byte
+var coordinateChan chan string
 
 func main() {
 
@@ -21,7 +21,7 @@ func main() {
 	// }
 
 	//coordinateChan = make(chan int)
-	coordinateChan = make(chan []byte)
+	coordinateChan = make(chan string)
 
 	fmt.Println("Running Coordinator")
 

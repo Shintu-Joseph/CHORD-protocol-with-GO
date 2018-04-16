@@ -73,7 +73,7 @@ func generateMessages(timeSeed time.Time) int {
 }
 
 //Generate messages
-func generateRandomMessage() []byte {
+func generateRandomMessage() string {
 	//generate random message
 
 	//1. join-ring msg
@@ -83,7 +83,9 @@ func generateRandomMessage() []byte {
 		Do:      "join-ring",
 		Sponsor: sponsorKey,
 	}
-	message, _ := json.Marshal(msg1)
+	marshalledMessage, _ := json.Marshal(msg1)
+
+	message := string(marshalledMessage)
 
 	/*
 		choice := rand.Intn(12)
@@ -250,31 +252,31 @@ func randomGenerator(timeSeed time.Time, min int, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-func triggerSuccesorMessage(sponsor HashKey, recipient HashKey) []byte {
+func triggerSuccesorMessage(sponsor HashKey, recipient HashKey) string {
 	findSuccesorM := &findRingSPMsg{
 		Do:        "find-ring-successor",
 		RespondTO: sponsor,
 		TargetID:  recipient,
 	}
 	fsMessage, _ := json.Marshal(findSuccesorM)
-	return fsMessage
+	return string(fsMessage)
 }
 
-func initRingFingMessage() []byte {
+func initRingFingMessage() string {
 	msg3 := &doMsgs{
 		Do: "init-ring-fingers",
 	}
 	initRingMessage, _ := json.Marshal(msg3)
-	return initRingMessage
+	return string(initRingMessage)
 }
 
-func getRingFingMessage(key HashKey) []byte {
+func getRingFingMessage(key HashKey) string {
 
 	msg6 := &doRespondToMsgs{
 		Do:        "get-ring-fingers",
 		RespondTO: key,
 	}
 	getRingFinMessage, _ := json.Marshal(msg6)
-	return getRingFinMessage
+	return string(getRingFinMessage)
 
 }

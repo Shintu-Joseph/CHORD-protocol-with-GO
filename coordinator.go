@@ -7,11 +7,11 @@ import (
 )
 
 //var channelMap map[HashKey]chan string
-var channelMap map[HashKey]chan []byte
+var channelMap map[HashKey]chan string
 
 func initGlobals() {
 	//channelMap = make(map[HashKey]chan string)
-	channelMap = make(map[HashKey]chan []byte)
+	channelMap = make(map[HashKey]chan string)
 }
 
 func coordinator() {
@@ -20,24 +20,15 @@ func coordinator() {
 
 	for i := 0; i < len(nodeList); i++ {
 		key := nodeList[i]
-		//channelMap[key] = make(chan string)
-		channelMap[key] = make(chan []byte)
+		channelMap[key] = make(chan string, 5)
 		wg.Add(1)
 		go nodeWorker(key, true)
 	}
 
-	// for elem := range coordinateChan {
-	// 	if elem == 20 {
-	// 		closeAllChannels()
-	// 	} else {
-	// 		channelMap[nodeList[elem]] <- strconv.Itoa(elem)
-	// 	}
-	// }
-
 	//Send message to sponsor
 	for message := range coordinateChan {
 		var dat map[string]interface{}
-		if err := json.Unmarshal(message, &dat); err != nil {
+		if err := json.Unmarshal([]byte(message), &dat); err != nil {
 			panic(err)
 		}
 		if dat["Do"] == "join-ring" {
@@ -45,11 +36,12 @@ func coordinator() {
 			key := genKey(randString())
 
 			fmt.Println("here")
-			channelMap[key] = make(chan []byte)
+			channelMap[key] = make(chan string, 5)
 			wg.Add(1)
 			go nodeWorker(key, false)
 			fmt.Println("here1")
 			channelMap[key] <- message
+			channelMap[key] <- initRingFingMessage()
 		}
 		if dat["Do"] == "leave-ring" {
 			sponsor := nodeList[rand.Intn(len(nodeList))]
