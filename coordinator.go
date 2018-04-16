@@ -84,21 +84,27 @@ func coordinator() {
 			channelMap[sponsor] <- message
 		}
 		if dat["Do"] == "put" {
-			res := putMsg{}
+			/*res := putMsg{}
 			json.Unmarshal([]byte(message), &res)
 			sponsor := res.RespondTO
+			*/
+			sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[sponsor] <- message
 		}
 		if dat["Do"] == "get" {
-			res := getRemMsgs{}
+			/*res := getRemMsgs{}
 			json.Unmarshal([]byte(message), &res)
 			sponsor := res.RespondTO
+			*/
+			sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[sponsor] <- message
 		}
 		if dat["Do"] == "remove" {
-			res := getRemMsgs{}
+			/*res := getRemMsgs{}
 			json.Unmarshal([]byte(message), &res)
 			sponsor := res.RespondTO
+			*/
+			sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[sponsor] <- message
 		}
 

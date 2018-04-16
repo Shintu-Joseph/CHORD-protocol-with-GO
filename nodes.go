@@ -12,8 +12,12 @@ func nodeWorker(key HashKey, buildRing bool) {
 	defer wg.Done()
 
 	nodeChan := channelMap[key]
-	//bucket := make(map[HashKey]string)
+
+	//bucketlist
+	bucket := make(map[HashKey]string)
+
 	fingerTable := make([]HashKey, 32)
+
 	recipient := key
 	successor := HashKey(0)
 	if buildRing {
@@ -58,7 +62,18 @@ func nodeWorker(key HashKey, buildRing bool) {
 			{
 				getRingFingers(message, fingerTable)
 			}
-
+		case "put":
+			{
+				putData(message, key, bucket)
+			}
+		case "get":
+			{
+				getData(message, key, bucket)
+			}
+		case "remove":
+			{
+				removeData(message, key, bucket)
+			}
 		}
 
 	}
@@ -116,20 +131,75 @@ func getSuccessor(sponsor HashKey, recipient HashKey, fingerTable []HashKey) Has
 	if recipient > sponsor && recipient < fingerTable[0] {
 		return fingerTable[0]
 
-	} else {
-		closestNode := findNearestPreceedingNode(recipient, fingerTable)
-		channelMap[closestNode] <- triggerSuccesorMessage(closestNode, recipient)
-
-		successorBytes := <-channelMap[closestNode]
-		fin, _ := strconv.ParseUint(successorBytes, 10, 64)
-		successor := HashKey(uint32(fin))
-
-		return successor
 	}
+
+	closestNode := findNearestPreceedingNode(recipient, fingerTable)
+	channelMap[closestNode] <- triggerSuccesorMessage(closestNode, recipient)
+
+	successorBytes := <-channelMap[closestNode]
+	fin, _ := strconv.ParseUint(successorBytes, 10, 64)
+	successor := HashKey(uint32(fin))
+
+	return successor
+
 }
 
 func getPredecessor(key HashKey) {
 
+}
+
+func putData(message string, key HashKey, bucket map[HashKey]string) {
+	res := putMsg{}
+	json.Unmarshal([]byte(message), &res)
+	n := res.RespondTO
+	ID := res.Data.Key
+	channelMap[n] <- triggerSuccesorMessage(n, ID)
+	successorBytes := <-channelMap[n]
+	fin, _ := strconv.ParseUint(successorBytes, 10, 64)
+	successor := HashKey(uint32(fin))
+	if key == successor {
+		bucket[ID] = res.Data.Value
+		fmt.Println("bucket inserted: ", bucket[ID])
+	} else {
+		channelMap[successor] <- message
+	}
+}
+
+func getData(message string, key HashKey, bucket map[HashKey]string) {
+	res := getRemMsgs{}
+	json.Unmarshal([]byte(message), &res)
+	n := res.RespondTO
+	ID := res.Data.Key
+	channelMap[n] <- triggerSuccesorMessage(n, ID)
+	successorBytes := <-channelMap[n]
+	fin, _ := strconv.ParseUint(successorBytes, 10, 64)
+	successor := HashKey(uint32(fin))
+	if key == successor {
+		fmt.Println("successor = ", successor)
+		fmt.Println("key =", key)
+		value := bucket[ID]
+		fmt.Println("Value = ", value)
+	} else {
+		channelMap[successor] <- message
+	}
+}
+
+func removeData(message string, key HashKey, bucket map[HashKey]string) {
+	res := getRemMsgs{}
+	json.Unmarshal([]byte(message), &res)
+	n := res.RespondTO
+	ID := res.Data.Key
+	channelMap[n] <- triggerSuccesorMessage(n, ID)
+	successorBytes := <-channelMap[n]
+	fin, _ := strconv.ParseUint(successorBytes, 10, 64)
+	successor := HashKey(uint32(fin))
+	if key == successor {
+		//fmt.Println("Deleted")
+		delete(bucket, ID)
+		fmt.Println("Deleted")
+	} else {
+		channelMap[successor] <- message
+	}
 }
 
 func initialRingSimulator(fingerTable []HashKey, key HashKey) {
