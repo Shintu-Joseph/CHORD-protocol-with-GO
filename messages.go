@@ -71,6 +71,16 @@ type updateSuccessorMsg struct {
 	Successor HashKey
 }
 
+type getBucketMessage struct {
+	Do  string
+	Key HashKey
+}
+
+type copyBucketMessage struct {
+	Do     string
+	Bucket map[HashKey]string
+}
+
 func injectRequests() {
 	ticker = time.NewTicker(1500 * time.Millisecond)
 	c := 0
@@ -347,4 +357,28 @@ func updatePredecessorMessage(predecessor HashKey) string {
 	updatePredecessorMsg, _ := json.Marshal(msg)
 	return string(updatePredecessorMsg)
 
+}
+
+func triggerGetBucktMessage(recipient HashKey) string {
+	getBuckt := &getBucketMessage{
+		Do:  "get-bucket",
+		Key: recipient,
+	}
+	gbMessage, _ := json.Marshal(getBuckt)
+	return string(gbMessage)
+}
+
+func triggerCopyBucktMessage(successor HashKey, recipient HashKey, bucket map[HashKey]string) string {
+	buck := make(map[HashKey]string)
+	for b, v := range bucket {
+		if b >= recipient && b < successor {
+			buck[b] = v
+		}
+	}
+	copyBuckt := &copyBucketMessage{
+		Do:     "copy-bucket",
+		Bucket: buck,
+	}
+	cbMessage, _ := json.Marshal(copyBuckt)
+	return string(cbMessage)
 }

@@ -35,7 +35,8 @@ func nodeWorker(key HashKey, buildRing bool) {
 				json.Unmarshal([]byte(message), &res)
 				sponsorKey := res.Sponsor
 				successor = joinRing(sponsorKey, recipient, fingerTable)
-
+				//updating bucket list
+				channelMap[successor] <- triggerGetBucktMessage(key)
 			}
 		case "find-ring-successor":
 			{
@@ -100,7 +101,23 @@ func nodeWorker(key HashKey, buildRing bool) {
 			{
 				successor = updateSuccessor(message)
 			}
-
+		case "get-bucket":
+			{
+				res := getBucketMessage{}
+				json.Unmarshal([]byte(message), &res)
+				n := res.Key
+				getBucketF(key, n, bucket)
+			}
+		case "copy-bucket":
+			{
+				res := copyBucketMessage{}
+				json.Unmarshal([]byte(message), &res)
+				buck := res.Bucket
+				for i, v := range buck {
+					bucket[i] = v
+				}
+				fmt.Println("join-ring:: Bucketlist of recipient updated: ", bucket)
+			}
 		}
 
 	}
@@ -318,4 +335,14 @@ func findNearestPreceedingNode(key HashKey, fingerTable []HashKey) HashKey {
 		}
 	}
 	return tempTable[0]
+}
+
+func getBucketF(key HashKey, n HashKey, bucket map[HashKey]string) {
+	channelMap[n] <- triggerCopyBucktMessage(key, n, bucket)
+	for b := range bucket {
+		if b >= n && b < key {
+			delete(bucket, b)
+			fmt.Println("join-ring:: Successor's Bucket List updated :", bucket)
+		}
+	}
 }
