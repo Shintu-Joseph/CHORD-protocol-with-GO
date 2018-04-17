@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -85,10 +86,10 @@ func injectRequests() {
 	ticker = time.NewTicker(1500 * time.Millisecond)
 	c := 0
 	go func() {
-		for range ticker.C {
+		for t := range ticker.C {
 			//coordinateChan <- generateMessages(t)
 			if c == 0 {
-				coordinateChan <- generateRandomMessage()
+				coordinateChan <- generateRandomMessage(t)
 				c++
 			}
 		}
@@ -100,184 +101,110 @@ func generateMessages(timeSeed time.Time) int {
 }
 
 //Generate messages
-func generateRandomMessage() string {
-	//generate random message
+func generateRandomMessage(timeSeed time.Time) string {
 
-	//1. join-ring msg
-	//sponsorKey := nodeList[rand.Intn(len(nodeList))]
+	var message string
+	min := 0
+	max := 5
+	rand.Seed(timeSeed.UTC().UnixNano())
+	choice := rand.Intn(max-min) + min
 
-	// msg1 := &joinRingMsg{
-	// 	Do:      "join-ring",
-	// 	Sponsor: sponsorKey,
-	// }
+	switch choice {
+	case 0:
+		{
+			sponsorKey := nodeList[rand.Intn(len(nodeList))]
 
-	msg1 := &leaveRingMsg{
-		Do:        "leave-ring",
-		Recipient: 4022502477,
-		Mode:      "orderly",
-	}
-
-	marshalledMessage, _ := json.Marshal(msg1)
-
-	message := string(marshalledMessage)
-
-	/*
-		choice := rand.Intn(12)
-		switch choice {
-		case 0:
-			{
-				sponsorKey := nodeList[rand.Intn(len(nodeList))]
-
-				msg0 := &joinRingMsg{
-					Do:      "join-ring",
-					Sponsor: sponsorKey,
-				}
-				joinRingMessage, _ := json.Marshal(msg0)
-				return joinRingMessage
+			msg0 := &joinRingMsg{
+				Do:      "join-ring",
+				Sponsor: sponsorKey,
 			}
-		case 1:
-			{
-				ch := rand.Intn(2)
-				switch ch {
-				case 0:
-					{
-						mode := "immediate"
-						msg1 := &leaveRingMsg{
-							Do:   "leave-ring",
-							Mode: mode,
-						}
-						leaveRingMessage, _ := json.Marshal(msg1)
-						return leaveRingMessage
+			marshalledMessage, _ := json.Marshal(msg0)
+			message = string(marshalledMessage)
+			fmt.Println("Case join-ring")
+			//return joinRingMessage
+		}
+	case 1:
+		{
+			fmt.Println("Case leave-ring")
+			ch := rand.Intn(2)
+			switch ch {
+			case 0:
+				{
+					mode := "immediate"
+					msg1 := &leaveRingMsg{
+						Do:   "leave-ring",
+						Mode: mode,
 					}
-				case 1:
-					{
-						mode := "orderly"
-						msg1 := &leaveRingMsg{
-							Do:   "leave-ring",
-							Mode: mode,
-						}
-						leaveRingMessage, _ := json.Marshal(msg1)
-						return leaveRingMessage
+					marshalledMessage, _ := json.Marshal(msg1)
 
+					message = string(marshalledMessage)
+					//return leaveRingMessage
+				}
+			case 1:
+				{
+					mode := "orderly"
+					msg1 := &leaveRingMsg{
+						Do:        "leave-ring",
+						Recipient: 4022502477,
+						Mode:      mode,
 					}
+					marshalledMessage, _ := json.Marshal(msg1)
+					message = string(marshalledMessage)
+
 				}
-			}
-		case 2:
-			{
-				msg2 := &doMsgs{
-					Do: "stabilize-ring",
-				}
-				stbRingMessage, _ := json.Marshal(msg2)
-				return stbRingMessage
-			}
-		case 3:
-			{
-				msg3 := &doMsgs{
-					Do: "init-ring-fingers",
-				}
-				initRingMessage, _ := json.Marshal(msg3)
-				return initRingMessage
-			}
-		case 4:
-			{
-				msg4 := &doMsgs{
-					Do: "fix-ring-fingers",
-				}
-				fixRingMessage, _ := json.Marshal(msg4)
-				return fixRingMessage
-			}
-		case 5:
-			{
-				key := nodeList[rand.Intn(len(nodeList))]
-				msg5 := &doRespondToMsgs{
-					Do:        "ring-notify",
-					RespondTO: key,
-				}
-				ringNotifyMessage, _ := json.Marshal(msg5)
-				return ringNotifyMessage
-			}
-		case 6:
-			{
-				key := nodeList[rand.Intn(len(nodeList))]
-				msg6 := &doRespondToMsgs{
-					Do:        "get-ring-fingers",
-					RespondTO: key,
-				}
-				getRingFinMessage, _ := json.Marshal(msg6)
-				return getRingFinMessage
-			}
-		case 7:
-			{
-				sponsor := nodeList[rand.Intn(len(nodeList))]
-				key := nodeList[rand.Intn(len(nodeList))]
-				msg7 := &findRingSPMsg{
-					Do:        "find-ring-successor",
-					RespondTO: sponsor,
-					TargetID:  key,
-				}
-				findSMessage, _ := json.Marshal(msg7)
-				return findSMessage
-			}
-		case 8:
-			{
-				sponsor := nodeList[rand.Intn(len(nodeList))]
-				key := nodeList[rand.Intn(len(nodeList))]
-				msg8 := &findRingSPMsg{
-					Do:        "find-ring-predecessor",
-					RespondTO: sponsor,
-					TargetID:  key,
-				}
-				findPMessage, _ := json.Marshal(msg8)
-				return findPMessage
-			}
-		case 9:
-			{
-				sponsor := nodeList[rand.Intn(len(nodeList))]
-				key := nodeList[rand.Intn(len(nodeList))]
-				datMsg := dataMsg2{
-					Key:   key,
-					Value: "val",
-				}
-				msg9 := &putMsg{
-					Do:        "put",
-					RespondTO: sponsor,
-					Data:      datMsg,
-				}
-				putMessage, _ := json.Marshal(msg9)
-				return putMessage
-			}
-		case 10:
-			{
-				sponsor := nodeList[rand.Intn(len(nodeList))]
-				key := nodeList[rand.Intn(len(nodeList))]
-				datMsg := dataMsg1{
-					Key: key,
-				}
-				msg10 := &getRemMsgs{
-					Do:        "get",
-					RespondTO: sponsor,
-					Data:      datMsg,
-				}
-				getMessage, _ := json.Marshal(msg10)
-				return getMessage
-			}
-		case 11:
-			{
-				sponsor := nodeList[rand.Intn(len(nodeList))]
-				key := nodeList[rand.Intn(len(nodeList))]
-				datMsg := dataMsg1{
-					Key: key,
-				}
-				msg11 := &getRemMsgs{
-					Do:        "remove",
-					RespondTO: sponsor,
-					Data:      datMsg,
-				}
-				remMessage, _ := json.Marshal(msg11)
-				return remMessage
 			}
 		}
-	*/
+	case 2:
+		{
+			sponsor := nodeList[rand.Intn(len(nodeList))]
+			key := nodeList[rand.Intn(len(nodeList))]
+			datMsg := dataMsg2{
+				Key:   key,
+				Value: "val",
+			}
+			msg9 := &putMsg{
+				Do:        "put",
+				RespondTO: sponsor,
+				Data:      datMsg,
+			}
+			marshalledMessage, _ := json.Marshal(msg9)
+			message = string(marshalledMessage)
+			fmt.Println("Case put data")
+		}
+	case 3:
+		{
+			sponsor := nodeList[rand.Intn(len(nodeList))]
+			key := nodeList[rand.Intn(len(nodeList))]
+			datMsg := dataMsg1{
+				Key: key,
+			}
+			msg10 := &getRemMsgs{
+				Do:        "get",
+				RespondTO: sponsor,
+				Data:      datMsg,
+			}
+			marshalledMessage, _ := json.Marshal(msg10)
+			message = string(marshalledMessage)
+			fmt.Println("Case get data")
+		}
+	case 4:
+		{
+			sponsor := nodeList[rand.Intn(len(nodeList))]
+			key := nodeList[rand.Intn(len(nodeList))]
+			datMsg := dataMsg1{
+				Key: key,
+			}
+			msg11 := &getRemMsgs{
+				Do:        "remove",
+				RespondTO: sponsor,
+				Data:      datMsg,
+			}
+			marshalledMessage, _ := json.Marshal(msg11)
+			message = string(marshalledMessage)
+			fmt.Println("Case remove data")
+		}
+	}
+	fmt.Println("Message: ", message)
 	return message
 }
 

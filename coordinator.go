@@ -44,66 +44,17 @@ func coordinator() {
 			channelMap[key] <- initRingFingMessage()
 		}
 		if dat["Do"] == "leave-ring" {
-			//sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[4022502477] <- message
 		}
-		if dat["Do"] == "stabilize-ring" {
-			sponsor := nodeList[rand.Intn(len(nodeList))]
-			channelMap[sponsor] <- message
-		}
-		if dat["Do"] == "init-ring-fingers" {
-			sponsor := nodeList[rand.Intn(len(nodeList))]
-			channelMap[sponsor] <- message
-		}
-		if dat["Do"] == "fix-ring-fingers" {
-			sponsor := nodeList[rand.Intn(len(nodeList))]
-			channelMap[sponsor] <- message
-		}
-		if dat["Do"] == "ring-notify" {
-			res := doRespondToMsgs{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			channelMap[sponsor] <- message
-		}
-		if dat["Do"] == "get-ring-fingers" {
-			res := doRespondToMsgs{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			channelMap[sponsor] <- message
-		}
-		if dat["Do"] == "find-ring-successor" {
-			res := findRingSPMsg{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			channelMap[sponsor] <- message
-		}
-		if dat["Do"] == "find-ring-predecessor" {
-			res := findRingSPMsg{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			channelMap[sponsor] <- message
-		}
 		if dat["Do"] == "put" {
-			/*res := putMsg{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			*/
 			sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[sponsor] <- message
 		}
 		if dat["Do"] == "get" {
-			/*res := getRemMsgs{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			*/
 			sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[sponsor] <- message
 		}
 		if dat["Do"] == "remove" {
-			/*res := getRemMsgs{}
-			json.Unmarshal([]byte(message), &res)
-			sponsor := res.RespondTO
-			*/
 			sponsor := nodeList[rand.Intn(len(nodeList))]
 			channelMap[sponsor] <- message
 		}

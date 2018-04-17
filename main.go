@@ -7,8 +7,6 @@ import (
 
 var wg sync.WaitGroup
 
-//var coordinateChan chan int
-
 var coordinateChan chan string
 
 func main() {
